@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.optimize as opt
+from numpy.typing import NDArray
 from scipy.stats.distributions import t
 
 from . import plot
@@ -41,10 +42,8 @@ class DoseResponseCurve:
         bottom (float): Lower boundary
         top (float): Upper boundary
         ec50 (float): Relative EC50 Value
-        unit (float, optional): Scaling coefficient. Defaults to 1e-6.
         sds (tuple[float], optional): If provided, SD is stored as well.
         sample_size (int, optional): If provided with SD values, CI interval is calculated.
-        in_unit (bool, optional): If values are in provided unit. Defaults to True.
         alpha (float, optional): Level of confidence. Defaults to 0.05.
 
     Properties:
@@ -57,19 +56,13 @@ class DoseResponseCurve:
     top: float
     ec50: float
     log_ec50: float = field(init=False)
-    unit: float = 1e-6
     sds: tuple[float] = field(kw_only=True, default=None, repr=False)
     sample_size: int = field(kw_only=True, default=None, repr=False)
-    in_unit: bool = field(kw_only=True, default=False, repr=False)
     alpha: float = field(kw_only=True, default=0.05, repr=False)
 
     def __post_init__(self):
 
-        if not self.in_unit:
-            self.ec50 = self.ec50 / self.unit
-            self._log_ec50 = np.log10(self.ec50)
-        else:
-            self._log_ec50 = np.log10(self.ec50 * self.unit)
+        self._log_ec50 = np.log10(self.ec50)
 
         self._params = pd.DataFrame(
             {
@@ -85,8 +78,7 @@ class DoseResponseCurve:
         )
 
         if self.sds is not None:
-            if not self.in_unit:
-                self.sds[-1] = self.sds[-1] / self.unit
+
             self._params["SD"] = list(self.sds) + [0.0]
 
             if self.sample_size is not None:
@@ -123,11 +115,9 @@ class DoseResponse:
         compound (str): Name of compound
         doses (Sequence[float]): Doses in provided unit
         responses (Sequence[float]): Responses
-        unit (float, optional): Scaling coefficient. Defaults to 1e-6.
-        log (int, optional): 0 (not logarithmic), 1 (neg. logs in SI), 2 (logs in SI), 3 (neg. logs in unit), 4 (logs in unit), Defaults to 0.
 
     Properties:
-        doses (NDArray): Doses in SI
+        doses (NDArray): Doses in provided unit (if doses are logs, use DoseResponse.from_logs first)
         log_doses (NDArray): Doses in logarithmic scale in SI
         params (DoseResponseCurve): Parameters of the Dose-Response-Curve
         plot (Figure): Plot of the Dose-Response-Curve
@@ -136,28 +126,14 @@ class DoseResponse:
     compound: str
     doses: Sequence[float]
     responses: Sequence[float]
-    unit: float = 1e-6
-    log: int = field(kw_only=True, repr=False, default=0)
 
     def __post_init__(self):
         assert len(self.doses) == len(
             self.responses
         ), "Different number of doses and responses values"
 
-        self.doses = np.array(self.doses, dtype=np.float32) * self.unit
-
-        if self.log not in (0, 1, 2, 3, 4):
-            raise ValueError("Argument log has to be either 0, 1, 2, 3 or 4.")
-        elif self.log == 0:
-            self._log_doses = -np.log10(self.doses)
-        else:
-            self._log_doses = self.doses
-            if self.log in (2, 4):
-                self._log_doses *= -1
-            if self.log in (1, 3):
-                scaling = -np.log10(self.unit)
-                self._log_doses += scaling
-            self.doses = 10 ** (-self.log_doses)
+        self.doses = np.array(self.doses, dtype=np.float32)
+        self._log_doses = -np.log10(self.doses)
 
         self.responses = np.array(self.responses, dtype=np.float32)
 
@@ -172,6 +148,28 @@ class DoseResponse:
 
         self._params = None
         self._plot = None
+
+    def from_logs(log_doses: Sequence[float], neg=True, log_unit=1e-6, target_unit=1e-6) -> NDArray[np.float32]:       
+        """Convert (negative) log values in doses in target unit
+
+        Args:
+            log_doses (Sequence[float]): Log dose values
+            neg (bool, optional): If values are the negative log. Defaults to True.
+            log_unit (float, optional): Shift of log values from standard unit. Defaults to 1.0.
+            target_unit (float, optional): Shift of the calculated values. Defaults to 1e-6.
+        Returns:
+            NDArray[np.float32]: Doses in provided unit
+        """
+        log_doses = np.array(log_doses, dtype=np.float32)
+        if not neg:
+            log_doses *= -1
+            
+        if log_unit != target_unit:
+            log_doses -= np.log10(log_unit)-np.log10(target_unit)
+
+        doses = 10 ** (-log_doses)
+            
+        return doses
 
     @property
     def log_doses(self):
@@ -331,6 +329,10 @@ class DoseResponse:
         dose_unit: str = "conc. [µM]",
         response_unit: str = "fold act.",
         title: str | None = None,
+        show_vals=False,
+        show_errorbars=True,
+        adjust_xticks=True,
+        adjust_yticks=True
     ):
         if title is None:
             title = self.compound.upper()
@@ -338,18 +340,20 @@ class DoseResponse:
         x_fitted, y_fitted = self._get_fitted()
         plot.plot(x_fitted, y_fitted)
 
-        if False:
+        if show_vals:
             plot.scatter(self.log_doses, self.responses)
 
-        if True:
+        if show_errorbars:
             std_x, std_y, std_err = self._get_errors()
             plot.errorbars(std_x, std_y, std_err)
 
         ax = plt.gca()
         plot.axes(ax)
         plot.labels(title, dose_unit, response_unit)
-        plot.xticks(self.log_doses)
-        if True:
+        
+        if adjust_xticks:      
+            plot.xticks(self.log_doses)
+        if adjust_yticks:
             plot.yticks(self.responses)
 
         self._plot = plt.gcf()

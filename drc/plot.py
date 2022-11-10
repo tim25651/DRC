@@ -79,7 +79,7 @@ def labels(title: str, xlabel: str, ylabel: str):
     plt.ylabel(ylabel, weight="bold", size="16")
 
 
-def xticks(x: NDArray[np.float32], scaling: float = 1e-6):
+def xticks(x: NDArray[np.float32]):
     """Plot ticks on Y axis with logarithmic scaling and labels on every log step
 
     Args:
@@ -90,7 +90,7 @@ def xticks(x: NDArray[np.float32], scaling: float = 1e-6):
     max_val = 10 ** np.ceil(-min(x))
 
     x_ticks = [f * min_val for f in (0.7, 0.8, 0.9, 1.0)]
-    x_tick_labels = ["", "", "", f"{min_val/scaling:.2f}"]
+    x_tick_labels = ["", "", "", f"{min_val:.2f}"]
     while min_val <= max_val:
         for f in range(2, 10):
             x_ticks.append(f * min_val)
@@ -98,7 +98,7 @@ def xticks(x: NDArray[np.float32], scaling: float = 1e-6):
         min_val = 10 * min_val
         x_ticks.append(min_val)
         label = (
-            f"{min_val/scaling:.2f}" if min_val < scaling else f"{min_val/scaling:.0f}"
+            f"{min_val:.2f}" if min_val < 1 else f"{min_val:.0f}"
         )
         x_tick_labels.append(label)
         if (max_val - min_val) < 1e-15:
