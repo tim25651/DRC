@@ -1,6 +1,5 @@
 #%%
 import os
-from argparse import ArgumentParser
 from dataclasses import dataclass, field
 from typing import Iterable, Sequence
 
@@ -10,13 +9,22 @@ import pandas as pd
 import scipy.optimize as opt
 from scipy.stats.distributions import t
 
+from . import plot
 
-def ll4(x, hill_slope, bottom, top, ec50):
+
+def ll4(x: float, hill_slope: float, bottom: float, top: float, ec50: float) -> float:
     """This function is basically a copy of the LL.4 function from the R drc package with
-    - hill_slope: hill slope
-    - bottom: min response
-    - top: max response
-    - ec50: EC50"""
+
+    Args:
+        x (float): Dose
+        hill_slope (float): Steepness of curve
+        bottom (float): Lower boundary
+        top (float): Upper boundary
+        ec50 (float): Relative EC50
+
+    Returns:
+        float: Response
+    """
     return bottom + (top - bottom) / (
         1 + 10 ** (hill_slope * (np.log10(ec50) - np.log10(x)))
     )
@@ -139,7 +147,7 @@ class DoseResponse:
         self.doses = np.array(self.doses, dtype=np.float32) * self.unit
 
         if self.log not in (0, 1, 2, 3, 4):
-            raise ValueError("Argument logarithmic has to be either 0, 1, 2, 3 or 4.")
+            raise ValueError("Argument log has to be either 0, 1, 2, 3 or 4.")
         elif self.log == 0:
             self._log_doses = -np.log10(self.doses)
         else:
@@ -326,6 +334,29 @@ class DoseResponse:
     ):
         if title is None:
             title = self.compound.upper()
+
+        x_fitted, y_fitted = self._get_fitted()
+        plot.plot(x_fitted, y_fitted)
+
+        if False:
+            plot.scatter(self.log_doses, self.responses)
+
+        if True:
+            std_x, std_y, std_err = self._get_errors()
+            plot.errorbars(std_x, std_y, std_err)
+
+        ax = plt.gca()
+        plot.axes(ax)
+        plot.labels(title, dose_unit, response_unit)
+        plot.xticks(self.log_doses)
+        if True:
+            plot.yticks(self.responses)
+
+        self._plot = plt.gcf()
+
+        return self.plot
+
+    def _get_fitted(self):
         if not hasattr(self, "_fit_coefs"):
             self._fit_curve()
 
@@ -334,90 +365,21 @@ class DoseResponse:
 
         x_fitted = log_doses_range
         y_fitted = [ll4(i, *self._fit_coefs) for i in doses_range]
-        plt.plot(x_fitted, y_fitted, color="black")
 
-        if False:
-            self._set_values()
+        return x_fitted, y_fitted
 
-        if True:
-            self._set_errorbars()
-
-        ax = plt.gca()
-        self._set_axis(ax)
-
-        plt.title(title, weight="bold", size="18")
-        plt.xlabel(dose_unit, weight="bold", size="16")
-        plt.ylabel(response_unit, weight="bold", size="16")
-
-        self._set_xticks()
-
-        if True:
-            self._set_yticks()
-
-        self._plot = plt.gcf()
-
-        return self.plot
-
-    def _set_values(self):
-        plt.scatter(self.log_doses, self.responses)
-
-    def _set_errorbars(self):
+    def _get_errors(self):
         grouped_df = self._data.groupby("log_dose")
-        stds = grouped_df.std(ddof=1)
+        sds = grouped_df.std(ddof=1)
+        means = grouped_df.mean()
         sizes = grouped_df.size()
 
-        std_err = stds.response / np.sqrt(sizes)
+        std_err = sds.response / np.sqrt(sizes)
 
-        std_x = stds.index
-        std_y = [ll4(i, *self._fit_coefs) for i in 10 ** (-std_x)]
-        plt.errorbar(
-            std_x,
-            std_y,
-            std_err,
-            color="black",
-            marker="o",
-            capsize=4,
-            linewidth=0,
-            elinewidth=2,
-        )
+        std_x = means.index
+        std_y = means.response
 
-    def _set_axis(self, ax):
-        ax.invert_xaxis()
-        ax.spines.right.set_visible(False)
-        ax.spines.top.set_visible(False)
-        ax.spines["left"].set_linewidth(2)
-        ax.spines["bottom"].set_linewidth(2)
-        ax.tick_params(width=2)
-
-    def _set_yticks(self):
-        max_val = np.ceil(max(self.responses) * 2).astype(int)
-        min_val = np.floor(min(self.responses) * 2).astype(int)
-        y_ticks = [x / 2 for x in range(min_val, max_val + 1)][1:-1]
-        plt.yticks(y_ticks)
-
-    def _set_xticks(self):
-        min_val = 10 ** np.floor(-max(self.log_doses))
-        max_val = 10 ** np.ceil(-min(self.log_doses))
-
-        x_ticks = [f * min_val for f in (0.7, 0.8, 0.9, 1.0)]
-        x_tick_labels = ["", "", "", f"{min_val/self.unit:.2f}"]
-        while min_val <= max_val:
-            for f in range(2, 10):
-                x_ticks.append(f * min_val)
-                x_tick_labels.append("")
-            min_val = 10 * min_val
-            x_ticks.append(min_val)
-            label = (
-                f"{min_val/self.unit:.2f}"
-                if min_val < self.unit
-                else f"{min_val/self.unit:.0f}"
-            )
-            x_tick_labels.append(label)
-            if (max_val - min_val) < 1e-15:
-                break
-        x_ticks = -np.log10(x_ticks)
-        plt.xticks(x_ticks, x_tick_labels, weight="bold")
-        plt.yticks(weight="bold")
+        return std_x, std_y, std_err
 
     def save_plot(self, save_path: str):
         self.plot.savefig(save_path)
@@ -426,60 +388,4 @@ class DoseResponse:
         self.params.params.to_csv(save_path, index=False, float_format="%.4f")
 
 
-def parse():
-    parser = ArgumentParser(
-        "DRC", description="Fit doses and reponses to a 4PL-Dose-Response-Curve"
-    )
-    parser.add_argument("file", metavar="CSV", help="File to load data from")
-    parser.add_argument(
-        "-o",
-        "--out",
-        metavar="DIR",
-        default=".",
-        help="Directory to store plot and params to",
-    )
-    parser.add_argument(
-        "-d",
-        "--dose_col",
-        nargs=1,
-        metavar="COL",
-        type=int,
-        default=None,
-        help="Column index of doses",
-    )
-    parser.add_argument(
-        "-r",
-        "--response_cols",
-        metavar="COL",
-        type=int,
-        nargs=2,
-        default=None,
-        help="Column index of range begin and end of responses",
-    )
-    args = parser.parse_args()
-
-    return args
-
-
-def main():
-    args = parse()
-    filename = args.file
-    dose_col: list[int] | None = args.dose_col
-    response_cols: list[int] | None = args.response_cols
-    output_dir = args.out
-
-    if dose_col is not None:
-        dose_col = dose_col[0]
-    if response_cols is not None:
-        response_cols = list(range(response_cols[0], response_cols[1] + 1))
-
-    dr = DoseResponse.read_csv(filename, dose_col=dose_col, response_cols=response_cols)
-
-    output_base = output_dir + "/" + dr.compound
-    dr.save_plot(output_base.lower() + "_plot.png")
-    dr.save_params(output_base.lower() + "_params.csv")
-
-
-if __name__ == "__main__":
-    main()
 # %%

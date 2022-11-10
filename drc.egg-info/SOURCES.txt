@@ -1,8 +1,11 @@
 README.md
 pyproject.toml
 drc/__init__.py
-drc/create_testdata.py
+drc/cli.py
 drc/drc.py
+drc/parse.py
+drc/plot.py
+drc/test.py
 drc.egg-info/PKG-INFO
 drc.egg-info/SOURCES.txt
 drc.egg-info/dependency_links.txt

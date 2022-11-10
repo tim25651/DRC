@@ -12,8 +12,8 @@ dependencies = [
 include= ["drc*"]
 
 [project.scripts]
-drc = "drc.drc:main"
-drc-test = "drc.create_testdata:main"
+drc = "drc.cli:main"
+drc-test = "drc.test:main"
 
 [tool.isort]
 profile = "black"
