@@ -16,8 +16,8 @@ def main():
         for n in range(1, 5):
             if n not in cols:
                 cols[n]: list[float] = []
-            x = np.random.normal(1.0, 0.2)
-            cols[n].append(x * resp)
+            x = np.random.normal(1.0, 0.1)
+            cols[n].append(f'{x * resp:.4f}')
 
     parser = ArgumentParser(
         "TestCurve", description="Create test dose and response values"

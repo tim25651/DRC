@@ -26,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     df = pd.DataFrame({0: concs, **cols})
-    df.to_csv(args.out, index=False, header=None)
+    df.to_csv(args.out, index=False, header=None, float_format="%.4f")
 
 
 if __name__ == "__main__":

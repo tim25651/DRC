@@ -79,7 +79,7 @@ class DoseResponseCurve:
         if self.sds is not None:
             if not self.in_unit:
                 self.sds[-1] = self.sds[-1] / self.unit
-            self._params["SD"] = list(self.sds) + [pd.NA]
+            self._params["SD"] = list(self.sds) + [0.0]
 
             if self.sample_size is not None:
                 ddof = max(0, self.sample_size - len(self.sds))
@@ -89,6 +89,8 @@ class DoseResponseCurve:
                 self._params["CI_Lower"] = ci_lower + [np.log10(ci_lower[-1])]
                 ci_upper = list(self.params.Mean[:-1] + tval * self.sds)
                 self._params["CI_Upper"] = ci_upper + [np.log10(ci_upper[-1])]
+
+        self._params.loc[self.params.Parameter == "LogEC50", "SD"] = pd.NA
 
     @property
     def params(self):
@@ -421,7 +423,8 @@ class DoseResponse:
         self.plot.savefig(save_path)
 
     def save_params(self, save_path: str):
-        self.params.params.to_csv(save_path, index=False)
+        self.params.params.to_csv(save_path, index=False, float_format="%.4f")
+
 
 def parse():
     parser = ArgumentParser(
@@ -468,13 +471,13 @@ def main():
     if dose_col is not None:
         dose_col = dose_col[0]
     if response_cols is not None:
-        response_cols = list(range(response_cols[0], response_cols[1]))
+        response_cols = list(range(response_cols[0], response_cols[1] + 1))
 
     dr = DoseResponse.read_csv(filename, dose_col=dose_col, response_cols=response_cols)
 
     output_base = output_dir + "/" + dr.compound
-    dr.save_plot(output_base + "_plot.png")
-    dr.save_params(output_base + "_params.csv")
+    dr.save_plot(output_base.lower() + "_plot.png")
+    dr.save_params(output_base.lower() + "_params.csv")
 
 
 if __name__ == "__main__":
