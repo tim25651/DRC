@@ -1,0 +1,19 @@
+[project]
+name = "drc"
+version = "0.0.1"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scipy"
+]
+
+[tool.setuptools.packages.find]
+include= ["drc*"]
+
+[project.scripts]
+drc = "drc.drc:main"
+drc-test = "drc.create_testdata:main"
+
+[tool.isort]
+profile = "black"

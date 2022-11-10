@@ -1,0 +1,3 @@
+[console_scripts]
+drc = drc.drc:main
+drc-test = drc.create_testdata:main
