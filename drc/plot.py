@@ -1,36 +1,37 @@
+from typing import Sequence
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from numpy.typing import NDArray
 
 
-def scatter(x: NDArray[np.float32], y: NDArray[np.float32]):
+def scatter(x: Sequence[float], y: Sequence[float]):
     """Simple scatter plot
 
     Args:
-        x (NDArray[float32]): X values
-        y (NDArray[float32]): Corresponding Y values
+        x (Sequence[float]): X values
+        y (Sequence[float]): Corresponding Y values
     """
     plt.scatter(x, y)
 
 
-def plot(x: NDArray[np.float32], y: NDArray[np.float32]):
+def plot(x: Sequence[float], y: Sequence[float]):
     """Simple black plot
 
     Args:
-        x (NDArray[np.float32]): X values
-        y (NDArray[np.float32]): Corresponding Y values
+        x (Sequence[float]): X values
+        y (Sequence[float]): Corresponding Y values
     """
     plt.plot(x, y, color="black")
 
 
-def errorbars(x: NDArray[np.float32], y: NDArray[np.float32], err: NDArray[np.float32]):
+def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]):
     """Plot bold black errorbars without connecting line
 
     Args:
-        x (NDArray[np.float32]): X values
-        y (NDArray[np.float32]): Mean values
-        err (NDArray[np.float32]): Standard error of the means
+        x (Sequence[float]): X values
+        y (Sequence[float]): Mean values
+        err (Sequence[float]): Standard error of the means
     """
     plt.errorbar(
         x,
@@ -58,7 +59,7 @@ def axes(ax: Axes):
     ax.tick_params(width=2)
 
 
-def yticks(y: NDArray[np.float32]):
+def yticks(y: Sequence[float]):
     """Plot bold ticks on Y-axis with 0.5 step size"""
     max_val = np.ceil(max(y) * 2).astype(int)
     min_val = np.floor(min(y) * 2).astype(int)
@@ -79,11 +80,11 @@ def labels(title: str, xlabel: str, ylabel: str):
     plt.ylabel(ylabel, weight="bold", size="16")
 
 
-def xticks(x: NDArray[np.float32]):
+def xticks(x: Sequence[float]):
     """Plot ticks on Y axis with logarithmic scaling and labels on every log step
 
     Args:
-        x (NDArray[np.float32]): Logarithmic X values
+        x (Sequence[float]): Logarithmic X values
         scaling (float, optional): Logarithmic shift of the X values to the standard unit. Defaults to 1e-6.
     """
     min_val = 10 ** np.floor(-max(x))
@@ -97,11 +98,9 @@ def xticks(x: NDArray[np.float32]):
             x_tick_labels.append("")
         min_val = 10 * min_val
         x_ticks.append(min_val)
-        label = (
-            f"{min_val:.2f}" if min_val < 1 else f"{min_val:.0f}"
-        )
+        label = f"{min_val:.2f}" if min_val < 1 else f"{min_val:.0f}"
         x_tick_labels.append(label)
         if (max_val - min_val) < 1e-15:
             break
-    x_ticks = -np.log10(x_ticks)
-    plt.xticks(x_ticks, x_tick_labels, weight="bold")
+    log_x_ticks = -np.log10(x_ticks)
+    plt.xticks(log_x_ticks, x_tick_labels, weight="bold")
