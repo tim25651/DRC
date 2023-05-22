@@ -1,12 +1,24 @@
 [project]
 name = "dose-response"
-version = "0.0.1"
+version = "0.0.2"
+authors = [
+    {name = "Tim Hörmann"},
+    {email = "t.hoermann@audivir.de"}
+]
+
+description = "Create Dose-Response-Curves from csv files"
+readme = "README.md"
+
 dependencies = [
     "matplotlib",
     "numpy",
     "pandas",
     "scipy"
 ]
+
+[project.urls]
+homepage = "https://www.audivir.de/"
+repository = "https://github.com/tim25651/DRC"
 
 [tool.setuptools.packages.find]
 include= ["drc*"]
