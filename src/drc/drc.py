@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,19 +14,22 @@ import pandas as pd
 import scipy.optimize as opt
 from numpy.typing import NDArray
 from scipy.stats.distributions import t
+from typing_extensions import Self
 
 from drc.plot import axes, errorbars, labels, plot, scatter, xticks, yticks
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Sequence
 
     from matplotlib.figure import Figure
 
 StrPath: TypeAlias = str | os.PathLike
 Float32Array: TypeAlias = NDArray[np.float32]
 
+_F = TypeVar("_F", float, Float32Array)
 
-def ll4(x: float, hill_slope: float, bottom: float, top: float, ec50: float) -> float:
+
+def ll4(x: _F, hill_slope: float, bottom: float, top: float, ec50: float) -> _F:
     """Calculate a reponse value with the fitted 4PL-Dose-Response-Curve.
 
     This function is basically a copy of the
@@ -40,11 +43,14 @@ def ll4(x: float, hill_slope: float, bottom: float, top: float, ec50: float) -> 
         ec50: Relative EC50
 
     Returns:
-        float: Response
+        Either a single response or all responses for the given doses
     """
-    p_ec50 = float(np.log10(ec50))
-    p_x = float(np.log10(x))
-    return bottom + (top - bottom) / (1 + 10 ** (hill_slope * (p_ec50 - p_x)))
+    response: Float32Array = bottom + (top - bottom) / (
+        1 + 10 ** (hill_slope * (np.log10(ec50) - np.log10(x)))
+    )
+    if isinstance(x, float):
+        return float(response)
+    return response
 
 
 @dataclass
@@ -138,21 +144,18 @@ class DoseResponse:
 
         self._log_doses = -np.log10(self.doses)
 
-        sorted_indices = self.doses.argsort()
-        self.doses.sort()
-        self._log_doses = self.log_doses[sorted_indices]
-        self.responses = self.responses[sorted_indices]
-
         self._data = pd.DataFrame(
             {"log_dose": self.log_doses, "dose": self.doses, "response": self.responses}
         )
+
+        self._data = self._data.sort_values("dose")
 
         self._params: DoseResponseCurve | None = None
         self._plot: Figure | None = None
 
     @staticmethod
     def from_logs(
-        log_doses: Sequence[float],
+        log_doses: Float32Array,
         neg: bool = True,
         log_unit: float = 1e-6,
         target_unit: float = 1e-6,
@@ -168,14 +171,13 @@ class DoseResponse:
         Returns:
             An array with the doses in provided unit
         """
-        _log_doses = np.array(log_doses, dtype=np.float32)
         if not neg:
-            _log_doses *= -1
+            log_doses *= -1
 
         if log_unit != target_unit:
-            _log_doses -= np.log10(log_unit) - np.log10(target_unit)
+            log_doses -= np.log10(log_unit) - np.log10(target_unit)
 
-        return 10 ** (-_log_doses)
+        return 10 ** (-log_doses)
 
     @property
     def log_doses(self) -> Float32Array:
@@ -188,7 +190,7 @@ class DoseResponse:
         filename: StrPath,
         compound: str | None = None,
         dose_col: int | None = None,
-        response_cols: Iterable[int] | None = None,
+        response_cols: Sequence[int] | None = None,
         rm_top_rows: int = 0,
         rm_bottom_rows: int = 0,
     ) -> DoseResponse:
@@ -226,10 +228,10 @@ class DoseResponse:
         dr_df: pd.DataFrame,
         compound: str,
         dose_col: int | None = None,
-        response_cols: Iterable[int] | None = None,
+        response_cols: Sequence[int] | None = None,
         rm_top_rows: int = 0,
         rm_bottom_rows: int = 0,
-    ) -> DoseResponse:
+    ) -> Self:
         """Create a DoseResponse Instance from a DataFrame.
 
         Data ending with * are excluded,
@@ -253,7 +255,9 @@ class DoseResponse:
                 raise ValueError(
                     "Please provide a dolumn for doses, as default = 0 is in responses"
                 )
+
             dose_col = 0
+
         if response_cols is None:
             response_cols = [col for col in dr_df.columns if col != dose_col]
 
@@ -307,7 +311,7 @@ class DoseResponse:
             A tuple with doses and corresponding responses without NA values
         """
         temp_df = pd.DataFrame({"dose": doses, "response": responses})
-        temp_df.dropna()
+        temp_df = temp_df.dropna()
         return temp_df["dose"], temp_df["response"]
 
     @staticmethod
@@ -402,14 +406,15 @@ class DoseResponse:
         ax = fig.add_subplot(111)
 
         x_fitted, y_fitted = self._get_fitted()
-        plot(x_fitted, y_fitted)
+
+        plot(ax, x_fitted, y_fitted)
 
         if show_vals:
-            scatter(self.log_doses, self.responses)
+            scatter(ax, self.log_doses, self.responses)
 
         if show_errorbars:
             std_x, std_y, std_err = self._get_errors()
-            errorbars(std_x, std_y, std_err)
+            errorbars(ax, std_x, std_y, std_err)
 
         axes(ax)
         labels(ax, title, dose_unit, response_unit)

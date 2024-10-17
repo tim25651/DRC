@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
-from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 
 if TYPE_CHECKING:
@@ -18,35 +17,40 @@ Float32Array: TypeAlias = NDArray[np.float32]
 EPSILON = 1e-15
 
 
-def scatter(x: Float32Array, y: Float32Array) -> None:
+def scatter(ax: Axes, x: Float32Array, y: Float32Array) -> None:
     """Simple scatter plot.
 
     Args:
+        ax: Axes from current plot
         x: X values
         y: Corresponding Y values
     """
-    plt.scatter(x, y)
+    ax.scatter(x, y)
 
 
-def plot(x: Sequence[float], y: Sequence[float]) -> None:
+def plot(ax: Axes, x: Sequence[float], y: Sequence[float]) -> None:
     """Simple black plot.
 
     Args:
+        ax: Axes from current plot
         x: X values
         y: Corresponding Y values
     """
-    plt.plot(x, y, color="black")
+    ax.plot(x, y, color="black")
 
 
-def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]) -> None:
+def errorbars(
+    ax: Axes, x: Sequence[float], y: Sequence[float], err: Sequence[float]
+) -> None:
     """Plot bold black errorbars without connecting line.
 
     Args:
+        ax: Axes from current plot
         x: X values
         y: Mean values
         err: Standard error of the means
     """
-    plt.errorbar(
+    ax.errorbar(
         x, y, err, color="black", marker="o", capsize=4, linewidth=0, elinewidth=2
     )
 
@@ -75,7 +79,7 @@ def yticks(ax: Axes, y: Float32Array) -> None:
     max_val = np.ceil(max(y) * 2).astype(int)
     min_val = np.floor(min(y) * 2).astype(int)
     y_ticks = [x / 2 for x in range(min_val, max_val + 1)][1:-1]
-    ax.set_yticks(y_ticks, weight="bold")
+    ax.set_yticks(y_ticks, y_ticks, weight="bold")
 
 
 def labels(ax: Axes, title: str, xlabel: str, ylabel: str) -> None:
