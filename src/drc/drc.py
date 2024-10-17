@@ -335,7 +335,7 @@ class DoseResponse:
             series = pd.to_numeric(series)
         except ValueError as e:
             if coerce:
-                print(f"Trying to convert column {series.name} with coerce mode")
+                print(f"Trying to convert column {series.name} with coerce mode")  # noqa: T201
                 series = pd.to_numeric(series, errors="coerce")
             else:
                 raise ValueError("Strings in series, coercion turned off") from e

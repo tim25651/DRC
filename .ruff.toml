@@ -70,7 +70,7 @@ ignore = [
     "FBT002",  # Boolean default positional argument
     "FBT003",  # Boolean positional value in function call
     
-    "T201",  # `print` found
+    # "T201",  # `print` found
     
     "NPY002",  # Replace legacy `np.random.permutation` call with `np.random.Generator.permutation`
     

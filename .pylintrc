@@ -1,6 +1,6 @@
 [MAIN]
 # CUSTOM: Minimum supported Python version.
-py-version=3.10 # custom change
+py-version=3.11 # custom change
 
 # Files or directories to be skipped. They should be base names, not paths.
 ignore=third_party,OLD,OTHER
@@ -111,6 +111,10 @@ disable=
       consider-using-in,
       import-outside-toplevel,
       bad-mcs-classmethod-argument,
+      too-many-positional-arguments,
+      too-many-instance-attributes,
+      too-many-arguments,
+      too-many-locals,
 
 # CUSTOM: Complete design section is a custom addition to the Google style guide.
 [DESIGN]
@@ -346,7 +350,7 @@ ignore-comments=yes
 ignore-docstrings=yes
 
 # Ignore imports when computing similarities.
-ignore-imports=no
+ignore-imports=yes
 
 
 [SPELLING]
