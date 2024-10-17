@@ -2,7 +2,7 @@ from . import DoseResponse
 from .parse import parse
 
 
-def main():
+def main() -> None:
     args = parse()
     filename = args.file
     dose_col: list[int] | None = args.dose_col

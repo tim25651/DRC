@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 
 
 def parse() -> Namespace:
-    """Parses CLI arguments
+    """Parses CLI arguments.
 
     Returns:
         Namespace: Parsed arguments
@@ -36,6 +36,5 @@ def parse() -> Namespace:
         default=None,
         help="Column index of range begin and end of responses",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    return args

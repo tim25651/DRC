@@ -1,15 +1,18 @@
 # %%
 from argparse import ArgumentParser, Namespace
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 from .drc import ll4
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
 
 def parse() -> Namespace:
-    """Parses CLI arguments
+    """Parses CLI arguments.
 
     Returns:
         Namespace: Parsed arguments
@@ -18,12 +21,11 @@ def parse() -> Namespace:
         "TestCurve", description="Create test dose and response values"
     )
     parser.add_argument("out", metavar="CSV", help="File to save test data to")
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
-def main():
+
+def main() -> None:
     # Set arbitrary parameters
     hill_slope, bottom, top, ec50, duplicates, unit = 1, 1, 3, 1e-6, 5, 1e-6
     base_concs = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)

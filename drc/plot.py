@@ -1,12 +1,12 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
 
-def scatter(x: Sequence[float], y: Sequence[float]):
-    """Simple scatter plot
+def scatter(x: Sequence[float], y: Sequence[float]) -> None:
+    """Simple scatter plot.
 
     Args:
         x (Sequence[float]): X values
@@ -15,8 +15,8 @@ def scatter(x: Sequence[float], y: Sequence[float]):
     plt.scatter(x, y)
 
 
-def plot(x: Sequence[float], y: Sequence[float]):
-    """Simple black plot
+def plot(x: Sequence[float], y: Sequence[float]) -> None:
+    """Simple black plot.
 
     Args:
         x (Sequence[float]): X values
@@ -25,8 +25,8 @@ def plot(x: Sequence[float], y: Sequence[float]):
     plt.plot(x, y, color="black")
 
 
-def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]):
-    """Plot bold black errorbars without connecting line
+def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]) -> None:
+    """Plot bold black errorbars without connecting line.
 
     Args:
         x (Sequence[float]): X values
@@ -38,8 +38,8 @@ def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]):
     )
 
 
-def axes(ax: Axes):
-    """Inverse X-axis, remove right and upper spines, make lines and ticks bold
+def axes(ax: Axes) -> None:
+    """Inverse X-axis, remove right and upper spines, make lines and ticks bold.
 
     Args:
         ax (Axes): Axes from current plot
@@ -52,16 +52,16 @@ def axes(ax: Axes):
     ax.tick_params(width=2)
 
 
-def yticks(y: Sequence[float]):
-    """Plot bold ticks on Y-axis with 0.5 step size"""
+def yticks(y: Sequence[float]) -> None:
+    """Plot bold ticks on Y-axis with 0.5 step size."""
     max_val = np.ceil(max(y) * 2).astype(int)
     min_val = np.floor(min(y) * 2).astype(int)
     y_ticks = [x / 2 for x in range(min_val, max_val + 1)][1:-1]
     plt.yticks(y_ticks, weight="bold")
 
 
-def labels(title: str, xlabel: str, ylabel: str):
-    """Add bold labels to the plot and its axis
+def labels(title: str, xlabel: str, ylabel: str) -> None:
+    """Add bold labels to the plot and its axis.
 
     Args:
         title (str): Title of plot
@@ -73,8 +73,8 @@ def labels(title: str, xlabel: str, ylabel: str):
     plt.ylabel(ylabel, weight="bold", size="16")
 
 
-def xticks(x: Sequence[float]):
-    """Plot ticks on Y axis with logarithmic scaling and labels on every log step
+def xticks(x: Sequence[float]) -> None:
+    """Plot ticks on Y axis with logarithmic scaling and labels on every log step.
 
     Args:
         x (Sequence[float]): Logarithmic X values

@@ -1,7 +1,7 @@
 # %%
 import os
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Iterable, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +14,7 @@ from . import plot
 
 
 def ll4(x: float, hill_slope: float, bottom: float, top: float, ec50: float) -> float:
-    """This function is basically a copy of the LL.4 function from the R drc package with
+    """This function is basically a copy of the LL.4 function from the R drc package with.
 
     Args:
         x (float): Dose
@@ -33,7 +33,7 @@ def ll4(x: float, hill_slope: float, bottom: float, top: float, ec50: float) -> 
 
 @dataclass
 class DoseResponseCurve:
-    """Storage class for parameter of an 4PL-DoseResponse Curve
+    """Storage class for parameter of an 4PL-DoseResponse Curve.
 
     Y = Bottom + (Top - Bottom) / (1 + 10 ** HillSlope * (lg(EC50) - lg(x)))
 
@@ -77,16 +77,16 @@ class DoseResponseCurve:
         )
 
         if self.sds is not None:
-            self._params["SD"] = list(self.sds) + [0.0]
+            self._params["SD"] = [*list(self.sds), 0.0]
 
             if self.sample_size is not None:
                 ddof = max(0, self.sample_size - len(self.sds))
                 tval = t.ppf(1.0 - self.alpha / 2, ddof)
 
                 ci_lower = list(self.params.Mean[:-1] - tval * self.sds)
-                self._params["CI_Lower"] = ci_lower + [np.log10(ci_lower[-1])]
+                self._params["CI_Lower"] = [*ci_lower, np.log10(ci_lower[-1])]
                 ci_upper = list(self.params.Mean[:-1] + tval * self.sds)
-                self._params["CI_Upper"] = ci_upper + [np.log10(ci_upper[-1])]
+                self._params["CI_Upper"] = [*ci_upper, np.log10(ci_upper[-1])]
 
         self._params.loc[self.params.Parameter == "LogEC50", "SD"] = pd.NA
 
@@ -143,7 +143,7 @@ class DoseResponse:
     def from_logs(
         log_doses: Sequence[float], neg=True, log_unit=1e-6, target_unit=1e-6
     ) -> NDArray[np.float32]:
-        """Convert (negative) log values in doses in target unit
+        """Convert (negative) log values in doses in target unit.
 
         Args:
             log_doses (Sequence[float]): Log dose values
@@ -161,9 +161,8 @@ class DoseResponse:
         if log_unit != target_unit:
             _log_doses -= np.log10(log_unit) - np.log10(target_unit)
 
-        doses = 10 ** (-_log_doses)
+        return 10 ** (-_log_doses)
 
-        return doses
 
     @property
     def log_doses(self):
@@ -179,7 +178,7 @@ class DoseResponse:
         rm_top_rows: int = 0,
         rm_bottom_rows: int = 0,
     ) -> "DoseResponse":
-        """Create a DoseResponse Instance from a CSV file
+        """Create a DoseResponse Instance from a CSV file.
 
         Data ending with * are excluded, for responses only the single values, for doses the complete row
 
@@ -215,7 +214,7 @@ class DoseResponse:
         rm_top_rows: int = 0,
         rm_bottom_rows: int = 0,
     ) -> "DoseResponse":
-        """Create a DoseResponse Instance from a DataFrame
+        """Create a DoseResponse Instance from a DataFrame.
 
         Data ending with * are excluded, for responses only the single values, for doses the complete row
 
@@ -262,7 +261,7 @@ class DoseResponse:
 
     @staticmethod
     def _remove_rows(df: pd.DataFrame, top: int = 0, bottom: int = 0) -> pd.DataFrame:
-        """Remove rows from top or/and bottom
+        """Remove rows from top or/and bottom.
 
         Args:
             df (pd.DataFrame): DataFrame to remove rows from
@@ -272,15 +271,12 @@ class DoseResponse:
         Returns:
             pd.DataFrame: Cropped DataFrame
         """
-        if bottom == 0:
-            bottom = len(df)
-        else:
-            bottom = -bottom
+        bottom = len(df) if bottom == 0 else -bottom
         return df[top:bottom]
 
     @staticmethod
     def _remove_na(doses: Sequence, responses: Sequence):
-        """Remove data points where either dose or response is not available or excluded
+        """Remove data points where either dose or response is not available or excluded.
 
         Args:
             doses (Sequence[float  |  np.nan]): Dose values
@@ -295,7 +291,7 @@ class DoseResponse:
 
     @staticmethod
     def _exclude_values(series: pd.Series, marker: str = "*") -> pd.Series:
-        """Exclude values from data if it ends with marker
+        """Exclude values from data if it ends with marker.
 
         Args:
             series (pd.Series): Series with data points
@@ -305,8 +301,7 @@ class DoseResponse:
             pd.Series: Series with np.nan instead of excluded values
         """
         exclude = series.astype(str).str.endswith(marker, na=True)
-        series = np.where(exclude, np.nan, series)
-        return series
+        return np.where(exclude, np.nan, series)
 
     @staticmethod
     def _to_numeric(series: pd.Series, coerce=True):
@@ -321,8 +316,8 @@ class DoseResponse:
 
         return series
 
-    def _fit_curve(self):
-        """Fit 4-DL-Dose-Response-Curve with scipy optimizer.curve_fit"""
+    def _fit_curve(self) -> None:
+        """Fit 4-DL-Dose-Response-Curve with scipy optimizer.curve_fit."""
         self._fit_coefs, self._fit_pcov = opt.curve_fit(
             ll4, self.doses, self.responses, maxfev=100000
         )
@@ -334,7 +329,7 @@ class DoseResponse:
         return self._params
 
     def get_params(self) -> pd.DataFrame:
-        """Get Parameter of the fitted curve
+        """Get Parameter of the fitted curve.
 
         Returns:
             pd.DataFrame: DataFrame with parameters, its SD and CI
@@ -366,7 +361,7 @@ class DoseResponse:
         adjust_xticks=True,
         adjust_yticks=True,
     ):
-        """Plot the fitted curve
+        """Plot the fitted curve.
 
         Args:
             dose_unit (str, optional): Label of X-axis. Defaults to "conc. [µM]".
@@ -407,7 +402,7 @@ class DoseResponse:
         return self.plot
 
     def _get_fitted(self) -> tuple[list[float], list[float]]:
-        """Get the coordinated of the fitted curve
+        """Get the coordinated of the fitted curve.
 
         Returns:
             tuple[list[float], list[float]]: X values and Y values of the fitted curve
@@ -424,7 +419,7 @@ class DoseResponse:
         return x_fitted, y_fitted
 
     def _get_errors(self) -> tuple[pd.Series, pd.Series, pd.Series]:
-        """Get coordinates of the error bars
+        """Get coordinates of the error bars.
 
         Returns:
             tuple[pd.Series, pd.Series, pd.Series]: X values, Y values and the size of the standard error bars
@@ -441,16 +436,16 @@ class DoseResponse:
 
         return std_x, std_y, std_err
 
-    def save_plot(self, save_path: str):
-        """Save the plot of the fitted curve with default settings
+    def save_plot(self, save_path: str) -> None:
+        """Save the plot of the fitted curve with default settings.
 
         Args:
             save_path (str): Path to store the image file to
         """
         self.plot.savefig(save_path)
 
-    def save_params(self, save_path: str):
-        """Save the parameters of the fitted curve as csv file
+    def save_params(self, save_path: str) -> None:
+        """Save the parameters of the fitted curve as csv file.
 
         Args:
             save_path (str): Path to store the csv file to
