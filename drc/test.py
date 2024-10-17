@@ -1,4 +1,4 @@
-#%%
+# %%
 from argparse import ArgumentParser, Namespace
 
 import numpy as np
@@ -14,7 +14,6 @@ def parse() -> Namespace:
     Returns:
         Namespace: Parsed arguments
     """
-
     parser = ArgumentParser(
         "TestCurve", description="Create test dose and response values"
     )
@@ -25,7 +24,6 @@ def parse() -> Namespace:
 
 
 def main():
-
     # Set arbitrary parameters
     hill_slope, bottom, top, ec50, duplicates, unit = 1, 1, 3, 1e-6, 5, 1e-6
     base_concs = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)

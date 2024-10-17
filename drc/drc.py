@@ -1,4 +1,4 @@
-#%%
+# %%
 import os
 from dataclasses import dataclass, field
 from typing import Iterable, Sequence
@@ -61,7 +61,6 @@ class DoseResponseCurve:
     alpha: float = field(kw_only=True, default=0.05, repr=False)
 
     def __post_init__(self):
-
         self.log_ec50 = np.log10(self.ec50)
 
         self._params = pd.DataFrame(
@@ -78,7 +77,6 @@ class DoseResponseCurve:
         )
 
         if self.sds is not None:
-
             self._params["SD"] = list(self.sds) + [0.0]
 
             if self.sample_size is not None:
@@ -152,6 +150,7 @@ class DoseResponse:
             neg (bool, optional): If values are the negative log. Defaults to True.
             log_unit (float, optional): Shift of log values from standard unit. Defaults to 1.0.
             target_unit (float, optional): Shift of the calculated values. Defaults to 1e-6.
+
         Returns:
             NDArray[np.float32]: Doses in provided unit
         """
@@ -325,10 +324,7 @@ class DoseResponse:
     def _fit_curve(self):
         """Fit 4-DL-Dose-Response-Curve with scipy optimizer.curve_fit"""
         self._fit_coefs, self._fit_pcov = opt.curve_fit(
-            ll4,
-            self.doses,
-            self.responses,
-            maxfev=100000,
+            ll4, self.doses, self.responses, maxfev=100000
         )
 
     @property

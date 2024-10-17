@@ -34,14 +34,7 @@ def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]):
         err (Sequence[float]): Standard error of the means
     """
     plt.errorbar(
-        x,
-        y,
-        err,
-        color="black",
-        marker="o",
-        capsize=4,
-        linewidth=0,
-        elinewidth=2,
+        x, y, err, color="black", marker="o", capsize=4, linewidth=0, elinewidth=2
     )
 
 

@@ -7,7 +7,6 @@ def parse() -> Namespace:
     Returns:
         Namespace: Parsed arguments
     """
-
     parser = ArgumentParser(
         "DRC", description="Fit doses and reponses to a 4PL-Dose-Response-Curve"
     )

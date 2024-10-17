@@ -1,4 +1,40 @@
-__pycache__/
-build/
-*.egg-info/
-dist/
+# Linting
+run.sh
+run_ruff_fixes.sh
+run_ci.sh
+.cov*
+!.coveragerc
+htmlcov
+
+# Cache files
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Python file
+*.egg-info
+__pycache__
+build
+dist
+
+# Sphinx files
+/docs/build
+/docs/source/_static/
+/docs/source/_autosummary/
+build
+__pycache__
+*.egg-info
+
+# VSCode files
+.vscode
+
+# macOS files
+.DS_Store
+._.DS_Store
+
+# Local files
+OLD
+OTHER
+wd*
+output*
+input*
