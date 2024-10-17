@@ -1,3 +1,7 @@
+"""CLI argument parser for DRC."""
+
+from __future__ import annotations
+
 from argparse import ArgumentParser, Namespace
 
 
@@ -37,4 +41,3 @@ def parse() -> Namespace:
         help="Column index of range begin and end of responses",
     )
     return parser.parse_args()
-

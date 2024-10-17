@@ -1,11 +1,13 @@
 # %%
+"""Create test dose and response values."""
+
 from argparse import ArgumentParser, Namespace
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
-from .drc import ll4
+from drc.drc import ll4
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -24,8 +26,8 @@ def parse() -> Namespace:
     return parser.parse_args()
 
 
-
 def main() -> None:
+    """Create test dose and response values."""
     # Set arbitrary parameters
     hill_slope, bottom, top, ec50, duplicates, unit = 1, 1, 3, 1e-6, 5, 1e-6
     base_concs = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
@@ -44,8 +46,8 @@ def main() -> None:
 
     args = parse()
 
-    df = pd.DataFrame(concs_n_responses)
-    df.to_csv(args.out, index=False, header=None, float_format="%.4f")
+    dr_df = pd.DataFrame(concs_n_responses)
+    dr_df.to_csv(args.out, index=False, header=None, float_format="%.4f")
 
 
 if __name__ == "__main__":

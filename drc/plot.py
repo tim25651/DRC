@@ -1,16 +1,29 @@
-from collections.abc import Sequence
+"""Plotting functions for DRC package."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, TypeAlias
 
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
+from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from matplotlib.axes import Axes
+
+Float32Array: TypeAlias = NDArray[np.float32]
+
+EPSILON = 1e-15
 
 
-def scatter(x: Sequence[float], y: Sequence[float]) -> None:
+def scatter(x: Float32Array, y: Float32Array) -> None:
     """Simple scatter plot.
 
     Args:
-        x (Sequence[float]): X values
-        y (Sequence[float]): Corresponding Y values
+        x: X values
+        y: Corresponding Y values
     """
     plt.scatter(x, y)
 
@@ -19,8 +32,8 @@ def plot(x: Sequence[float], y: Sequence[float]) -> None:
     """Simple black plot.
 
     Args:
-        x (Sequence[float]): X values
-        y (Sequence[float]): Corresponding Y values
+        x: X values
+        y: Corresponding Y values
     """
     plt.plot(x, y, color="black")
 
@@ -29,9 +42,9 @@ def errorbars(x: Sequence[float], y: Sequence[float], err: Sequence[float]) -> N
     """Plot bold black errorbars without connecting line.
 
     Args:
-        x (Sequence[float]): X values
-        y (Sequence[float]): Mean values
-        err (Sequence[float]): Standard error of the means
+        x: X values
+        y: Mean values
+        err: Standard error of the means
     """
     plt.errorbar(
         x, y, err, color="black", marker="o", capsize=4, linewidth=0, elinewidth=2
@@ -52,36 +65,42 @@ def axes(ax: Axes) -> None:
     ax.tick_params(width=2)
 
 
-def yticks(y: Sequence[float]) -> None:
-    """Plot bold ticks on Y-axis with 0.5 step size."""
+def yticks(ax: Axes, y: Float32Array) -> None:
+    """Plot bold ticks on Y-axis with 0.5 step size.
+
+    Args:
+        ax: Axes from current plot
+        y: Y values
+    """
     max_val = np.ceil(max(y) * 2).astype(int)
     min_val = np.floor(min(y) * 2).astype(int)
     y_ticks = [x / 2 for x in range(min_val, max_val + 1)][1:-1]
-    plt.yticks(y_ticks, weight="bold")
+    ax.set_yticks(y_ticks, weight="bold")
 
 
-def labels(title: str, xlabel: str, ylabel: str) -> None:
+def labels(ax: Axes, title: str, xlabel: str, ylabel: str) -> None:
     """Add bold labels to the plot and its axis.
 
     Args:
-        title (str): Title of plot
-        xlabel (str): Label on the X-axis
-        ylabel (str): Label on the Y-axis
+        ax: Axes from current plot
+        title: Title of plot
+        xlabel: Label on the X-axis
+        ylabel: Label on the Y-axis
     """
-    plt.title(title, weight="bold", size="18")
-    plt.xlabel(xlabel, weight="bold", size="16")
-    plt.ylabel(ylabel, weight="bold", size="16")
+    ax.set_title(title, weight="bold", size="18")
+    ax.set_xlabel(xlabel, weight="bold", size="16")
+    ax.set_ylabel(ylabel, weight="bold", size="16")
 
 
-def xticks(x: Sequence[float]) -> None:
+def xticks(ax: Axes, xvals: Float32Array) -> None:
     """Plot ticks on Y axis with logarithmic scaling and labels on every log step.
 
     Args:
-        x (Sequence[float]): Logarithmic X values
-        scaling (float, optional): Logarithmic shift of the X values to the standard unit. Defaults to 1e-6.
+        ax: Axes from current plot
+        xvals: Logarithmic X values
     """
-    min_val = 10 ** np.floor(-max(x))
-    max_val = 10 ** np.ceil(-min(x))
+    min_val = 10 ** np.floor(-max(xvals))
+    max_val = 10 ** np.ceil(-min(xvals))
 
     x_ticks = [f * min_val for f in (0.7, 0.8, 0.9, 1.0)]
     x_tick_labels = ["", "", "", f"{min_val:.2f}"]
@@ -93,7 +112,7 @@ def xticks(x: Sequence[float]) -> None:
         x_ticks.append(min_val)
         label = f"{min_val:.2f}" if min_val < 1 else f"{min_val:.0f}"
         x_tick_labels.append(label)
-        if (max_val - min_val) < 1e-15:
+        if (max_val - min_val) < EPSILON:
             break
     log_x_ticks = -np.log10(x_ticks)
-    plt.xticks(log_x_ticks, x_tick_labels, weight="bold")
+    ax.set_xticks(log_x_ticks, x_tick_labels, weight="bold")

@@ -1,16 +1,19 @@
-from . import DoseResponse
-from .parse import parse
+"""Command-line interface for the Dose-Response Curve package."""
+
+from __future__ import annotations
+
+from drc.drc import DoseResponse
+from drc.parse import parse
 
 
 def main() -> None:
+    """Create a Dose-Response curve from a CSV file."""
     args = parse()
     filename = args.file
-    dose_col: list[int] | None = args.dose_col
+    dose_col: int | None = args.dose_col
     response_cols: list[int] | None = args.response_cols
     output_dir = args.out
 
-    if dose_col is not None:
-        dose_col = dose_col[0]
     if response_cols is not None:
         response_cols = list(range(response_cols[0], response_cols[1] + 1))
 
