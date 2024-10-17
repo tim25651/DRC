@@ -21,6 +21,7 @@ homepage = "https://www.audivir.de/"
 repository = "https://github.com/tim25651/DRC"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include= ["drc*"]
 
 [project.scripts]
@@ -29,3 +30,36 @@ drc-test = "drc.test:main"
 
 [tool.isort]
 profile = "black"
+split_on_trailing_comma = false
+
+[tool.black]
+target-version = ["py311"]
+line-length = 88
+# include src and tests regex .pyi?$ to include type hints
+include = '(src|examples|tests)\/.*\.py'
+# unstable
+unstable = true
+skip-magic-trailing-comma = true
+
+[tool.mypy]
+# ignore_missing_imports = true
+python_version = "3.11"
+enable_error_code = '''type-arg,no-untyped-def,redundant-cast,redundant-self,comparison-overlap,
+                    no-untyped-call,no-any-return,no-any-unimported,unreachable,redundant-expr,
+                    possibly-undefined,truthy-bool,truthy-iterable,ignore-without-code,
+                    unused-awaitable,unused-ignore,explicit-override,unimported-reveal'''
+disable_error_code = 'import-untyped'
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+exclude = ["OLD", "OTHER", "build", "docs", "test"]
+
+[tool.vulture]
+ignore_names = ["_*", "unused_*"]
+paths = ["src", ".whitelist"]
+make_whitelist = true
+sort_by_size = true
+verbose = false
