@@ -24,9 +24,9 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 StrPath: TypeAlias = str | os.PathLike
-Float32Array: TypeAlias = NDArray[np.float32]
+Float64Array: TypeAlias = NDArray[np.float64]
 
-_F = TypeVar("_F", float, Float32Array)
+_F = TypeVar("_F", float, Float64Array)
 
 
 def ll4(x: _F, hill_slope: float, bottom: float, top: float, ec50: float) -> _F:
@@ -45,7 +45,7 @@ def ll4(x: _F, hill_slope: float, bottom: float, top: float, ec50: float) -> _F:
     Returns:
         Either a single response or all responses for the given doses
     """
-    response: Float32Array = bottom + (top - bottom) / (
+    response: Float64Array = bottom + (top - bottom) / (
         1 + 10 ** (hill_slope * (np.log10(ec50) - np.log10(x)))
     )
     if isinstance(x, float):
@@ -127,16 +127,16 @@ class DoseResponse:
     and plot it with standard error bars.
 
     Attributes:
-        doses (Float32Array): Doses in provided unit
+        doses (Float64Array): Doses in provided unit
             (if doses are logs, use DoseResponse.from_logs first)
-        log_doses (Float32Array): Doses in logarithmic scale in SI
+        log_doses (Float64Array): Doses in logarithmic scale in SI
         params (DoseResponseCurve): Parameters of the Dose-Response-Curve
         plot (Figure): Plot of the Dose-Response-Curve
     """
 
     compound: str
-    doses: Float32Array
-    responses: Float32Array
+    doses: Float64Array
+    responses: Float64Array
 
     def __post_init__(self) -> None:
         if len(self.doses) != len(self.responses):
@@ -155,11 +155,11 @@ class DoseResponse:
 
     @staticmethod
     def from_logs(
-        log_doses: Float32Array,
+        log_doses: Float64Array,
         neg: bool = True,
         log_unit: float = 1e-6,
         target_unit: float = 1e-6,
-    ) -> Float32Array:
+    ) -> Float64Array:
         """Convert (negative) log values in doses in target unit.
 
         Args:
@@ -180,7 +180,7 @@ class DoseResponse:
         return 10 ** (-log_doses)
 
     @property
-    def log_doses(self) -> Float32Array:
+    def log_doses(self) -> Float64Array:
         """Doses in logarithmic scale in SI."""
         return self._log_doses
 
@@ -193,6 +193,7 @@ class DoseResponse:
         response_cols: Sequence[int] | None = None,
         rm_top_rows: int = 0,
         rm_bottom_rows: int = 0,
+        header: bool = False,
     ) -> DoseResponse:
         """Create a DoseResponse Instance from a CSV file.
 
@@ -208,6 +209,7 @@ class DoseResponse:
                 Defaults to None (every other column but dose column used).
             rm_top_rows: Number of rows to remove from top. Defaults to 0.
             rm_bottom_rows: Number of rows to remove from bottom. Defaults to 0.
+            header: Use first row as header. Defaults to False.
 
         Returns:
             DoseResponse: Dose-Response instance with provided data
@@ -216,7 +218,7 @@ class DoseResponse:
         if compound is None:
             compound = filename.stem.upper()
 
-        dr_df = pd.read_csv(filename, header=None)
+        dr_df = pd.read_csv(filename, header=1 if header else None)
 
         return cls.read_df(
             dr_df, compound, dose_col, response_cols, rm_top_rows, rm_bottom_rows
@@ -263,13 +265,13 @@ class DoseResponse:
 
         dr_df = cls._remove_rows(dr_df, rm_top_rows, rm_bottom_rows)
 
-        doses = dr_df[dose_col]
+        doses = dr_df.iloc[:, dose_col]
         doses = cls._exclude_values(doses)
         doses = cls._to_numeric(doses, coerce=False)
 
         all_doses = []
         all_responses = []
-        responses = dr_df[response_cols]
+        responses = dr_df.iloc[:, response_cols]
         for col in responses.columns:
             response_col = responses[col]
             response_col = cls._exclude_values(response_col)

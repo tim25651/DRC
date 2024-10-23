@@ -32,8 +32,8 @@ def main() -> None:
     hill_slope, bottom, top, ec50, duplicates, unit = 1, 1, 3, 1e-6, 5, 1e-6
     base_concs = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
     # Set arbitrary concentrations
-    concs = np.array(base_concs, dtype=np.float32)
-    responses: list[NDArray[np.float32]] = []
+    concs = np.array(base_concs, dtype=np.float64)
+    responses: list[NDArray[np.float64]] = []
     for conc in concs * unit:
         # Calculate responses
         col = duplicates * [ll4(conc, hill_slope, bottom, top, ec50)]

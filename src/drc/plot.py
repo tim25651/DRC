@@ -12,12 +12,12 @@ if TYPE_CHECKING:
 
     from matplotlib.axes import Axes
 
-Float32Array: TypeAlias = NDArray[np.float32]
+Float64Array: TypeAlias = NDArray[np.float64]
 
 EPSILON = 1e-15
 
 
-def scatter(ax: Axes, x: Float32Array, y: Float32Array) -> None:
+def scatter(ax: Axes, x: Float64Array, y: Float64Array) -> None:
     """Simple scatter plot.
 
     Args:
@@ -69,7 +69,7 @@ def axes(ax: Axes) -> None:
     ax.tick_params(width=2)
 
 
-def yticks(ax: Axes, y: Float32Array) -> None:
+def yticks(ax: Axes, y: Float64Array) -> None:
     """Plot bold ticks on Y-axis with 0.5 step size.
 
     Args:
@@ -96,7 +96,7 @@ def labels(ax: Axes, title: str, xlabel: str, ylabel: str) -> None:
     ax.set_ylabel(ylabel, weight="bold", size="16")
 
 
-def xticks(ax: Axes, xvals: Float32Array) -> None:
+def xticks(ax: Axes, xvals: Float64Array) -> None:
     """Plot ticks on Y axis with logarithmic scaling and labels on every log step.
 
     Args:

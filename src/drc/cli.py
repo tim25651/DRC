@@ -15,6 +15,7 @@ class DoseResponseNamespace(Namespace):
     out: Path
     dose_col: int | None
     response_cols: list[int] | None
+    header: bool
 
 
 def parse() -> DoseResponseNamespace:
@@ -52,6 +53,13 @@ def parse() -> DoseResponseNamespace:
         default=None,
         help="Column index of range begin and end of responses",
     )
+    parser.add_argument(
+        "-e",
+        "--header",
+        action="store_true",
+        default=False,
+        help="Use first row as header",
+    )
     return parser.parse_args()  # type: ignore[return-value]
 
 
@@ -62,11 +70,14 @@ def main() -> None:
     dose_col = args.dose_col
     response_cols = args.response_cols
     output_dir = args.out.expanduser().resolve()
+    header = args.header
 
     if response_cols is not None:
         response_cols = list(range(response_cols[0], response_cols[1] + 1))
 
-    dr = DoseResponse.read_csv(filename, dose_col=dose_col, response_cols=response_cols)
+    dr = DoseResponse.read_csv(
+        filename, dose_col=dose_col, response_cols=response_cols, header=header
+    )
 
     lower_compound = dr.compound.lower().replace(" ", "_")
     dr.save_plot(output_dir / f"{lower_compound}_plot.png")
